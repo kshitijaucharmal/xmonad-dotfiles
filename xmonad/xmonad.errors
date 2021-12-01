@@ -1,0 +1,23 @@
+
+xmonad.hs:89:53: error: Data constructor not in scope: Toggle
+   |
+89 |     , ((modm .|. shiftMask, xK_b     ), sendMessage Toggle NOBORDERS)
+   |                                                     ^^^^^^
+
+xmonad.hs:89:60: error: Data constructor not in scope: NOBORDERS
+   |
+89 |     , ((modm .|. shiftMask, xK_b     ), sendMessage Toggle NOBORDERS)
+   |                                                            ^^^^^^^^^
+
+xmonad.hs:289:10: error:
+    Variable not in scope: gnomeConfig :: XConfig l0
+    |
+289 |   xmonad gnomeConfig { startupHook = setDefaultCursor xC_left_ptr }
+    |          ^^^^^^^^^^^
+
+xmonad.hs:305:30: error:
+    • Variable not in scope: myNormalBorderColor :: String
+    • Perhaps you meant ‘normalBorderColor’ (imported from XMonad)
+    |
+305 |         normalBorderColor  = myNormalBorderColor,
+    |                              ^^^^^^^^^^^^^^^^^^^
