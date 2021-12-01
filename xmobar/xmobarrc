@@ -1,0 +1,39 @@
+Config { font = "xft:Comic Mono:pixelsize=14:antialias=true:hinting=true"
+       , additionalFonts = []
+       , borderColor = "black"
+       , border = TopB
+       , bgColor = "black"
+       , fgColor = "white"
+       , alpha = 255
+       , position = Top
+       , textOffset = -1
+       , iconOffset = -1
+       , lowerOnStart = True
+       , pickBroadest = False
+       , persistent = False
+       , hideOnStart = False
+       , iconRoot = "."
+       , allDesktops = True
+       , overrideRedirect = True
+       , commands = [ Run Memory ["-t","Mem: <usedratio>%"] 10
+                    , Run Swap [] 10
+                    , Run Brightness ["-t", ""] 60
+                    , Run Battery [
+	            "-t", "<acstatus>: <left>% - <timeleft>",
+	            "--",
+		    --"-c", "charge_full",
+		    "-O", "AC",
+		    "-o", "Bat",
+		    "-h", "green",
+		    "-l", "red"
+	            ] 50
+                    , Run Com "uname" ["-s","-r"] "" 36000
+                    , Run Date "%a, %b %_d (%I:%M) %p" "date" 50
+                    , Run StdinReader
+		    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "    %memory% * %swap%                                                    \
+                    \<fc=#ee9a00>%date%</fc> }\
+                    \{ %battery%    "
+       }
