@@ -1,0 +1,14 @@
+/** Basic config file **/
+
+configuration {
+  show-icons:         true;
+  icon-theme:         "Reversal";
+}
+@theme "/usr/share/rofi/themes/purple.rasi"
+window {
+transparency: "real";
+fullscreen: true;
+border: 0;
+padding: 250;
+background-color: rgba (1, 1, 1, 0.3);
+}
