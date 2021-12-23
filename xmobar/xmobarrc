@@ -1,39 +1,41 @@
-Config { font = "xft:Comic Mono:pixelsize=14:antialias=true:hinting=true"
-       , additionalFonts = []
+Config { font = "xft:Comic Mono:pixelsize=14:weight=bold:antialias=true:hinting=true"
+       , additionalFonts = ["xft:Mononoki Nerd Font:weight=bold:pixelsize=16:antialias=true:hinting=true"
+                            , "xft:Font Awesome 5 Free Solid:pixelsize=22:antialias=true:hinting=true"]
        , borderColor = "black"
-       , border = TopB
        , bgColor = "black"
        , fgColor = "white"
-       , alpha = 255
-       , position = Top
+       , alpha = 150
+       , position = Static { xpos = 0, ypos = 0, width = 1366, height = 22}
        , textOffset = -1
        , iconOffset = -1
        , lowerOnStart = True
        , pickBroadest = False
-       , persistent = False
+       , persistent = True
        , hideOnStart = False
-       , iconRoot = "."
+       , iconRoot = ".xmonad/xpm/"  -- default: "."
        , allDesktops = True
        , overrideRedirect = True
-       , commands = [ Run Memory ["-t","Mem: <usedratio>%"] 10
-                    , Run Swap [] 10
-                    , Run Brightness ["-t", ""] 60
-                    , Run Battery [
-	            "-t", "<acstatus>: <left>% - <timeleft>",
-	            "--",
-		    --"-c", "charge_full",
-		    "-O", "AC",
-		    "-o", "Bat",
-		    "-h", "green",
-		    "-l", "red"
-	            ] 50
-                    , Run Com "uname" ["-s","-r"] "" 36000
-                    , Run Date "%a, %b %_d (%I:%M) %p" "date" 50
-                    , Run StdinReader
+       , commands = [
+                    Run Memory ["-t","<fc=#ffffff><fn=1>\xf233</fn></fc> <usedratio>%","-L","30","-H","60","-h","#FFB6B0","-l","#CEFFAC","-n","#FFFFCC","-w","3"] 10
+                    --Run Network "wlo1" [ "-t", "<fn=2>\xf0aa</fn>  <rx>kb  <fn=1>\xf0ab</fn>  <tx>kb",
+                    --"-L","200","-H","500","--normal","green","--high","red"] 100 -- "-L","0","-H","32","--normal","green","--high","red"
+		                
+                    -- Run Com "echo" ["<fn=2>\xf2db</fn>"] "cpuicon" 36000
+                    , Run MultiCpu ["-t","<fc=#ffffff><fn=1>\xf108</fn></fc><total0>%","-L","30","-H","60","-h","#FFB6B0","-l","#CEFFAC","-n","#FFFFCC","-w","3"] 10
+                    --, Run Swap [] 10
+                    --, Run Brightness ["-t", ""] 60
+                    , Run Com "echo" ["<fc=#ffffff><fn=1>\xf242</fn></fc>"] "baticon" 36000
+                    , Run Com "echo" ["<fn=2>\xf753</fn>"] "myicon" 36000
+                    , Run Com ".config/xmobar/battery" [] "battery" 10
+                    , Run Com "uname" ["-s", "-r"] "" 36000
+                    , Run Date "<fn=1>\xf133</fn>  %a, %b %_d (%I:%M) %p" "date" 50
+                    , Run Com "echo" ["<fc=#ffffff><fn=1>\xf028</fn></fc>"] "volicon" 36000
+                    , Run Com ".config/xmobar/volume" [] "volume" 10
+                    , Run Com ".config/xmobar/music" [] "music" 10
+                    , Run UnsafeStdinReader
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "    %memory% * %swap%                                                    \
-                    \<fc=#ee9a00>%date%</fc> }\
-                    \{ %battery%    "
+       , template = " <fc=#F5DE26>%myicon%</fc> <fn=1>%UnsafeStdinReader%</fn> | }<fc=#ee9a00>%date%</fc>{\
+                    \ %music% | %memory% %multicpu% | %baticon%  %battery% | %volicon% %volume% "
        }

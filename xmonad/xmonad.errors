@@ -1,23 +1,14 @@
 
-xmonad.hs:89:53: error: Data constructor not in scope: Toggle
-   |
-89 |     , ((modm .|. shiftMask, xK_b     ), sendMessage Toggle NOBORDERS)
-   |                                                     ^^^^^^
-
-xmonad.hs:89:60: error: Data constructor not in scope: NOBORDERS
-   |
-89 |     , ((modm .|. shiftMask, xK_b     ), sendMessage Toggle NOBORDERS)
-   |                                                            ^^^^^^^^^
-
-xmonad.hs:289:10: error:
-    Variable not in scope: gnomeConfig :: XConfig l0
+xmonad.hs:337:14: warning: [-Wdeprecations]
+    In the use of ‘spacing’ (imported from XMonad.Layout.Spacing):
+    Deprecated: "Use spacingRaw instead."
     |
-289 |   xmonad gnomeConfig { startupHook = setDefaultCursor xC_left_ptr }
-    |          ^^^^^^^^^^^
+337 |     tiled  = spacing 3 $ Tall nmaster delta ratio
+    |              ^^^^^^^
 
-xmonad.hs:305:30: error:
-    • Variable not in scope: myNormalBorderColor :: String
-    • Perhaps you meant ‘normalBorderColor’ (imported from XMonad)
+xmonad.hs:407:21: warning: [-Wtabs]
+    Tab character found here, and in 19 further locations.
+    Please use spaces instead.
     |
-305 |         normalBorderColor  = myNormalBorderColor,
-    |                              ^^^^^^^^^^^^^^^^^^^
+407 |                           ppOutput = \x -> hPutStrLn xmproc x
+    |                     ^^^^

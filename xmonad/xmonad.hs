@@ -14,10 +14,31 @@ import XMonad.Util.SpawnOnce
 import XMonad.Util.Cursor
 import XMonad.Util.Run
 import XMonad.Hooks.ManageDocks
-import XMonad.Layout.NoBorders
+import XMonad.Hooks.DynamicLog
 import XMonad.Layout.Spacing
+import XMonad.Layout.ToggleLayouts
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
+import System.IO
+import XMonad.Hooks.WorkspaceHistory
+import XMonad.Actions.CycleWS
+import XMonad.Layout.Fullscreen
+--import XMonad.Util.ClickableWorkspaces
+
+import Control.Monad (liftM2)
+import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.SetWMName
+import XMonad.Hooks.FadeInactive
+import XMonad.Layout.Fullscreen
+import XMonad.Layout.NoBorders
+import XMonad.Layout.Spiral
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ThreeColumns
+import XMonad.Actions.GridSelect
+import XMonad.Util.Themes
+import XMonad.Layout.MultiToggle.Instances (StdTransformers(FULL, NBFULL, MIRROR, NOBORDERS))
+
+import qualified XMonad.Layout.MultiToggle as MT (Toggle(..))
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
@@ -50,14 +71,75 @@ myModMask       = mod4Mask
 --
 -- A tagging example:
 --
--- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
+-- > workspaces = [" \xf269 ", "irc", " \xf121 " ] ++ map show [4..9]
 --
-myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
+-- \xf269 firefox
+xmobarEscape = concatMap doubleLts
+  where doubleLts '<' = "<<"
+        doubleLts x    = [x]
+
+-- icons for workspaces
+web = " \xf269 "
+code = " \xf121 "
+files = " \xf07b "
+music = " \xf001 "
+game = " \xf11b "
+video = " \xf03d "
+
+myClickableWorkspaces    = clickable . (map xmobarEscape) $ [ web, code, files, music, game, video]
+    where                                                                       
+         clickable l = [ "<action=xdotool key super+" ++ show (n) ++ ">" ++ ws ++ "</action>" |
+                             (i,ws) <- zip [1..7] l,                                        
+                            let n = i ]
+
+myWorkspaces = [ web, code, files, music, game, video]
+------------------------------------------------------------------------
+-- Window rules:
+
+-- Execute arbitrary actions and WindowSet manipulations when managing
+-- a new window. You can use this to, for example, always float a
+-- particular program, or have a client always appear on a particular
+-- workspace.
+--
+-- To find the property name associated with a program, use
+-- > xprop | grep WM_CLASS
+-- and click on the client you're interested in.
+--
+-- To match on the WM_NAME, you can use 'title' in the same way that
+-- 'className' and 'resource' are used below.
+--
+myManageHook :: Query (Data.Monoid.Endo WindowSet)
+myManageHook = composeAll
+    [ className =? "MPlayer"        --> doFloat
+    -- , className =? "Gimp-2.10"      --> doFloat
+    , className =? "Brave-browser"  --> doShift "<action=xdotool key super+1> \xf269 </action>" --  web
+
+    , className =? "Subl"           --> doShift "<action=xdotool key super+2> \xf121 </action>" -- code
+    , className =? "code-oss"       --> doShift "<action=xdotool key super+2> \xf121 </action>" -- code
+    , className =? "Atom"           --> doShift "<action=xdotool key super+2> \xf121 </action>" -- code
+    , className =? "MonoDevelop"           --> doShift "<action=xdotool key super+2> \xf121 </action>" -- code
+
+    -- , className =? "Org.gnome.Nautilus" --> doShift "<action=xdotool key super+3> \xf07b </action>" -- files
+    , className =? "DesktopEditors" --> doShift "<action=xdotool key super+3> \xf07b </action>" -- files
+
+    , className =? "Spotify"        --> doShift "<action=xdotool key super+4> \xf001 </action>" -- music
+
+    , className =? "UnityHub"       --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+    , className =? "Unity"          --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+    , className =? "Blender"        --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+    , className =? "Lutris"         --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+    , className =? "hollow knight.exe"  --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+    , className =? "retroarch"       --> doShift "<action=xdotool key super+5> \xf11b </action>" -- game
+
+    , className =? "obs"            --> doShift "<action=xdotool key super+6> \xf03d 77</action>" -- video
+    , className =? "VirtualBox Manager" --> doFloat
+    , resource  =? "desktop_window" --> doIgnore
+    , resource  =? "kdesktop"       --> doIgnore ]
 
 -- Border colors for unfocused and focused windows, respectively.
 --
--- myNormalBorderColor  = "#000000"
-myFocusedBorderColor = "#0BB5FF"
+myNormalBorderColor  = "#000000";
+myFocusedBorderColor = "#0597F2"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -73,29 +155,67 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
 
+    -- launch quicklinks
+    , ((modm .|. shiftMask, xK_l     ), spawn "quicklinks")
+
+    -- launch blender
+    , ((modm,               xK_b     ), spawn "blender")
+
+    -- lauch Atom
+    , ((modm,               xK_a     ), spawn "atom")
+
     -- launch files
-    , ((modm,               xK_x     ), spawn "GTK_THEME=Lightningbug-Dark nautilus")
+    , ((modm,               xK_x     ), spawn "GTK_THEME=Sweet-Dark-v40 nautilus")
+
+    -- , ((modm .|. shiftMask, xK_Down  ), shiftToPrev <+> prevWS)
+
+    -- , ((modm .|. shiftMask, xK_Up    ), shiftToNext <+> nextWS)
+
+    , ((modm,               xK_Down  ), prevWS)
+
+    , ((modm,               xK_Up    ), nextWS)
 
     -- launch rofi
-    , ((controlMask,        xK_space ), spawn "GTK_THEME=Lightningbug-Dark rofi -show drun")
+    , ((controlMask,        xK_space ), spawn "GTK_THEME=Sweet-Dark-v40 rofi -show drun")
 
     -- launch spotify
-    , ((modm,               xK_s     ), spawn "spotify")
+    , ((modm,               xK_s     ), spawn "snap run spotify")
+
+    -- launch UnityHub
+    , ((modm,               xK_u     ), spawn "~/Applications/UnityHub.AppImage")
+
+    -- launch vimb
+    , ((modm,               xK_v     ), spawn "vimb https://duckduckgo.com")
 
     -- toggle hide xmobar
-    , ((modm,               xK_z     ), sendMessage ToggleStruts)
+    , ((modm,               xK_z     ), sendMessage NextLayout >> sendMessage ToggleStruts)
 
-    -- toggle borders
-    , ((modm .|. shiftMask, xK_b     ), sendMessage Toggle NOBORDERS)
+    -- reboot
+    , ((modm .|. shiftMask, xK_z     ), spawn "systemctl reboot")
+
+    -- poweroff
+    , ((modm .|. shiftMask, xK_x     ), spawn "systemctl poweroff")
+
+    -- increase volume 
+    , ((modm .|. shiftMask, xK_Right ), spawn "amixer set Master 5%+ unmute")
+
+    -- decrease volume
+    , ((modm .|. shiftMask, xK_Left  ), spawn "amixer set Master 5%- unmute")
 
     -- increase brightness 
-    --, ("<XF86MonBrightnessUp>"        , spawn "lux -a 5%)
+    , ((modm .|. shiftMask, xK_Up    ), spawn "lux -a 5%")
 
     -- decrease brightness
-    --, ("<XF86MonBrightnessDown>"      , spawn "lux -s 5%)
+    , ((modm .|. shiftMask, xK_Down  ), spawn "lux -s 5%")
+
+    -- launch browser
+    , ((modm,               xK_f     ), spawn "brave")
 
     -- launch firefox
-    , ((modm,               xK_f     ), spawn "firefox")
+    , ((modm .|. shiftMask, xK_p     ), spawn "rofi-pass --last-used")
+
+    -- launch vimb
+    , ((modm .|. shiftMask, xK_f     ), spawn "vimb www.duckduckgo.com")
 
     -- close focused window
     , ((modm,               xK_c     ), kill)
@@ -155,7 +275,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
+    , ((modm              , xK_q     ), spawn "killall xmobar; xmonad --recompile; xmonad --restart")
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     , ((modm .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
@@ -210,41 +330,22 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts (tiled ||| Mirror tiled ||| Full)
-  where
-     -- default tiling algorithm partitions the screen into two panes
-     tiled   = spacing 3 $ Tall nmaster delta ratio
 
-     -- The default number of windows in the master pane
-     nmaster = 1
+myLayout = smartBorders tiled ||| noBorders Full -- ||| Mirror tiled
+ where
+    -- default tiling algorithm partitions the screen into two panes
+    tiled  = spacing 3 $ Tall nmaster delta ratio
 
-     -- Default proportion of screen occupied by master pane
-     ratio   = 1/2
+    -- The default number of windows in the master pane
+    nmaster = 1
 
-     -- Percent of screen to increment by when resizing panes
-     delta   = 3/100
+    -- Default proportion of screen occupied by master pane
+    ratio   = 1/2
 
-------------------------------------------------------------------------
--- Window rules:
+    -- Percent of screen to increment by when resizing panes
+    delta   = 3/100
 
--- Execute arbitrary actions and WindowSet manipulations when managing
--- a new window. You can use this to, for example, always float a
--- particular program, or have a client always appear on a particular
--- workspace.
---
--- To find the property name associated with a program, use
--- > xprop | grep WM_CLASS
--- and click on the client you're interested in.
---
--- To match on the WM_NAME, you can use 'title' in the same way that
--- 'className' and 'resource' are used below.
---
-myManageHook = composeAll
-    [ className =? "MPlayer"        --> doFloat
-    , className =? "Gimp"           --> doFloat
-    , className =? "VirtualBox Manager" --> doIgnore
-    , resource  =? "desktop_window" --> doIgnore
-    , resource  =? "kdesktop"       --> doIgnore ]
+-- Color of current window title in xmobar.
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -255,7 +356,7 @@ myManageHook = composeAll
 -- return (All True) if the default handler is to be run afterwards. To
 -- combine event hooks use mappend or mconcat from Data.Monoid.
 --
-myEventHook = mempty
+myEventHook = fullscreenEventHook
 
 ------------------------------------------------------------------------
 -- Status bars and logging
@@ -273,20 +374,49 @@ myLogHook = return ()
 -- per-workspace layout choices.
 --
 -- By default, do nothing.
-myStartupHook = do
-	spawnOnce "nitrogen --restore &"
-	spawnOnce "export GTK_THEME=Lightningbug-Dark"
-	spawnOnce "picom &"
+myStartupHook = do 
+    spawnOnce "nitrogen --restore &"
+    spawnOnce "export GTK_THEME=Sweet-Dark-v40"
+    spawnOnce "picom &"
+    spawnOnce "xsetroot -cursor_name left_ptr &"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
 
 -- Run xmonad with the settings you specify. No need to modify this.
 --
+
+  -- Used to be #00CC00
+xmobarCurrentWorkspaceColor = "#BFE640"
+xmobarVisibleColor = "#ff00ff"
+xmobarHiddenColor = "#E63F29"
+xmobarHiddenNoWindowsColor = "#53E5EB"
+xmobarTitleColor = "#00CC00"
+
+                                        -- >> hPutStrLn xmproc2 x
 main = do 
-  xmproc <- spawnPipe "xmobar -x 0 /home/kshitij/.config/xmobar/xmobarrc"
-  xmonad $ docks defaults
-  xmonad gnomeConfig { startupHook = setDefaultCursor xC_left_ptr }
+  xmproc <- spawnPipe ("xmobar -x 0 /home/kshitij/.config/xmobar/xmobarrc")
+  xmonad $ docks defaults {
+            -- this adds a fixup for docks
+            layoutHook = avoidStruts $ myLayout
+            , workspaces = myClickableWorkspaces
+
+            -- this adds Xmobar to Xmonad
+            , logHook = workspaceHistoryHook <+> myLogHook <+> dynamicLogWithPP xmobarPP
+                    {
+                    	  ppOutput = \x -> hPutStrLn xmproc x
+			, ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
+			, ppTitle = xmobarColor xmobarTitleColor "" . shorten 60
+			, ppVisible = xmobarColor xmobarVisibleColor ""
+			, ppHidden = xmobarColor xmobarHiddenColor ""
+			, ppHiddenNoWindows = xmobarColor xmobarHiddenNoWindowsColor ""
+			, ppSep = " | "
+                    }
+
+            -- this adds a second fixup for docks
+            , manageHook = manageDocks <+> myManageHook <+> manageHook def
+	        --, startupHook = setWMName "LG3D"
+            }
 
 -- A structure containing your configuration settings, overriding
 -- fields in the default config. Any you don't override, will

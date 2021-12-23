@@ -1,2 +1,4 @@
 # xmonad-dotfiles
-My Xmonad config files to make any arch system look like my desktop
+My Xmonad config files
+
+There are many settings specific to the programs on my system.

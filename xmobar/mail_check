@@ -1,0 +1,10 @@
+#! /bin/bash
+
+# I ould also have used `ls -1 | wc -l` - faster, but also includes directories
+
+GMAIL=`ls -l ~/Mail/Gmail/INBOX/new/ | grep ^- | wc -l`
+NEXUS=`ls -l ~/Mail/Nexus/INBOX/new/ | grep ^- | wc -l`
+
+COUNT=$(($GMAIL+$NEXUS))
+
+echo $COUNT
